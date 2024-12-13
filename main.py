@@ -1,20 +1,18 @@
 import logging
 import os
-import concurrent.futures
 import time
 import vertexai
 import json
 from vertexai.generative_models import GenerativeModel
+from vertexai.batch_prediction import BatchPredictionJob
 from flask import Flask, request
 from google.cloud import bigquery
 from google.cloud import storage
 from google.cloud.exceptions import NotFound
 from google.cloud import logging_v2
 from dotenv import load_dotenv
-from tqdm import tqdm
 from jinja2 import Environment, FileSystemLoader
-from datetime import datetime
-import vertexai
+from util import get_current_time
 
 # Certs
 # export GOOGLE_APPLICATION_CREDENTIALS="dla-dataform.json"
@@ -30,8 +28,9 @@ bigquery_client = bigquery.Client()
 # 設置query模板文件目錄
 env = Environment(loader=FileSystemLoader('query'))
 
-# 執行當天日期
-current_date=datetime.now().strftime("%Y%m%d")
+# 執行當天日期 / 時間
+current_date = get_current_time("%Y%m%d")
+current_datetime = get_current_time("%Y%m%d%H%M")
 
 # 設置日誌格式
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -48,7 +47,8 @@ def handle_request():
     # 3. 比對客戶標籤，取得客戶的標籤群組
     match_tag_group()
 
-    # get_user_email()
+    # 4. 寫入Audit log
+    add_audit_log()
     return "Processed successfully", 200
 
 @app.route("/updateGroupMeta", methods=["POST"])
@@ -61,6 +61,12 @@ def handle_request_update_grp_meta():
     add_grp_meta_audit(executor)
 
     return "Update Group Meta successfully", 200
+
+@app.route("/vertexPredic", methods=["POST"])
+def handle_request_vertex_predic():
+    #test_insert()
+    vertex_batch_predic()
+    return "Success Batch Predic", 200
 
 def sync_data_from_gcs():
     template = env.get_template('SYNC_CSV.sql')
@@ -90,13 +96,11 @@ def match_tag_group():
     bigquery_client.query(query)
     return logging.info("Matching cust tags and tag groups.")
 
-def get_user_email():
-    template = env.get_template('GET_USER.sql')
-    query = template.render()
-    rows = bigquery_client.query(query)
-    for row in rows:
-        logging.info(dict(row))  # 將每行結果轉為字典格式便於查看
-    return print(rows)
+def add_audit_log():
+    template = env.get_template('ADD_AUDIT_LOG.sql')
+    query = template.render(projectId=os.getenv('PROJECT_ID'), dataset=os.getenv('DATASET'), datetime=current_datetime,  date=current_date)
+    bigquery_client.query(query)
+    return logging.info("Add audit log.")
 
 def get_upload_user(bucket_name, object_name):
     client = logging_v2.Client()
@@ -213,5 +217,78 @@ def check_table_exist(table_id):
     else:
         print("Table creation verification failed. Exiting.")
         return
+
+def vertex_batch_predic():
+    # TODO(developer): Update and un-comment below line
+    # PROJECT_ID = "your-project-id"
+
+    # Initialize vertexai
+    vertexai.init(project=os.getenv('PROJECT_ID'), location="asia-east1")
+
+    input_uri = f"bq://{os.getenv('PROJECT_ID')}.vertex.test_predic"
+    output_uri = f"bq://{os.getenv('PROJECT_ID')}.vertex.BTCH_PREDIC_100w"
+    print("input_uri: ", input_uri)
+    # Submit a batch prediction job with Gemini model
+    batch_prediction_job = BatchPredictionJob.submit(
+        source_model="gemini-1.5-pro-001",
+        input_dataset=input_uri,
+        output_uri_prefix=output_uri,
+    )
+
+    # Check job status
+    print(f"Job resource name: {batch_prediction_job.resource_name}")
+    print(f"Model resource name with the job: {batch_prediction_job.model_name}")
+    print(f"Job state: {batch_prediction_job.state.name}")
+
+    # Refresh the job until complete
+    while not batch_prediction_job.has_ended:
+        time.sleep(5)
+        batch_prediction_job.refresh()
+
+    # Check if the job succeeds
+    if batch_prediction_job.has_succeeded:
+        print("Job succeeded!")
+    else:
+        print(f"Job failed: {batch_prediction_job.error}")
+
+    # Check the location of the output
+    print(f"Job output location: {batch_prediction_job.output_location}")
+
+    # Example response:
+    #  Job output location: bq://Project-ID/gen-ai-batch-prediction/predictions-model-year-month-day-hour:minute:second.12345
+def test_insert():
+    # 批量生成 JSON 数据
+    rows_to_insert = []
+    for i in range(100004,100006):
+        request_data = {
+            "contents": [
+                {
+                    "parts": [
+                        {
+                            "text": f"使用以下標籤:tag{i+1}，提供16字網路銀行行銷文案。"
+                        }
+                    ],
+                    "role": "user"
+                }
+            ],
+            "system_instruction": {
+                "parts": [
+                    {
+                        "text": "你是個銀行市場行銷人員"
+                    }
+                ]
+            }
+        }
+        rows_to_insert.append({"request": json.dumps(request_data)})
+
+    # 构造表引用
+    table_ref = f"{os.getenv('PROJECT_ID')}.vertex.test_predic"
+
+    # 批量插入数据
+    errors = bigquery_client.insert_rows_json(table_ref, rows_to_insert)
+    if not errors:
+        print("9996 records inserted successfully.")
+    else:
+        print(f"Errors occurred: {errors}")
 # 開出port號
 app.run(port=int(os.environ.get("PORT", 8080)),host='0.0.0.0',debug=True)
