@@ -18,7 +18,7 @@ SELECT
 FROM
     `{{ projectId}}.{{ dataset }}.CUST_TAGS_{{ date }}` u
 CROSS JOIN
-    `gcs_bq_sync.GROUP_META` g
+    `{{ dataset }}.GROUP_META` g
 ),
 ranked_groups AS (
 SELECT
