@@ -17,10 +17,10 @@ app = Flask(__name__)
 @app.route("/syncData", methods=["POST"])
 def handle_request():
     # 檢查GCS批次檔案是否準備好
-    # event_data = request.get_json()
-    # logging.info("Received event:%s", event_data)
-    # logging.info("event id: %s", event_data.get('id'))
-    # logging.info("object createtime: %s", event_data.get('timeCreated'))
+    event_data = request.get_json()
+    logging.info("Received event:%s", event_data)
+    logging.info("event id: %s", event_data.get('id'))
+    logging.info("object createtime: %s", event_data.get('timeCreated'))
     if not check_gcs_file_ready(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE')):
         return f"GCS 檔案 {os.getenv('DAILY_FILE')} 尚未準備就緒，請稍後再試。", 200
     sync_data_main()
