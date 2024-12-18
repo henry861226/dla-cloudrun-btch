@@ -16,10 +16,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 def sync_data_main():
     """處理 HTTP 請求，觸發工作流"""
 
-    # 檢查GCS批次檔案是否準備好
-    if not check_gcs_file_ready(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE')):
-        return f"GCS 檔案 {os.getenv('DAILY_FILE')} 尚未準備就緒，請稍後再試。", 400
-
     # 1. 從 GCS 同步CSV檔案
     sync_data_from_gcs()
 
