@@ -1,4 +1,5 @@
 import os
+import logging
 from flask import Flask, request
 from dotenv import load_dotenv
 from services.syncData import sync_data_main
@@ -16,6 +17,8 @@ app = Flask(__name__)
 @app.route("/", methods=["POST"])
 def handle_request():
     # 檢查GCS批次檔案是否準備好
+    event_data = request.get_json()
+    logging.info("Received event:", event_data)
     if not check_gcs_file_ready(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE')):
         print("222")
         return f"GCS 檔案 {os.getenv('DAILY_FILE')} 尚未準備就緒，請稍後再試。", 400
