@@ -14,7 +14,7 @@ load_dotenv(verbose=True)
 
 app = Flask(__name__)
 
-@app.route("/", methods=["GET"])
+@app.route("/syncData", methods=["POST"])
 def handle_request():
     # 檢查GCS批次檔案是否準備好
     # event_data = request.get_json()
