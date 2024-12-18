@@ -31,7 +31,7 @@ def sync_data_main():
     # 5. 刪除 GCS 檔案
     # delete_gcs_file(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE'))
 
-    return "Processed successfully", 200
+    return logging.info("Success sync batch data step.")
 
 def sync_data_from_gcs():
     execute_bq_query(

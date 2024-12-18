@@ -22,7 +22,6 @@ def handle_request():
     logging.info("event id: %s", event_data.get('id'))
     logging.info("object createtime: %s", event_data.get('timeCreated'))
     if not check_gcs_file_ready(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE')):
-        print("222")
         return f"GCS 檔案 {os.getenv('DAILY_FILE')} 尚未準備就緒，請稍後再試。", 200
     sync_data_main()
     return "Success syncing batch data.", 200
@@ -38,4 +37,5 @@ def handle_request_generate():
     return "Success Gen Group Marketing Copywriting.", 200
 
 # 開出port號
-app.run(port=int(os.environ.get("PORT", 8080)),host='0.0.0.0',debug=True)
+if __name__ == "__main__":
+    app.run(port=int(os.environ.get("PORT", 8080)),host='0.0.0.0',debug=True)
