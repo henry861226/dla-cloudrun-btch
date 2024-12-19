@@ -13,14 +13,19 @@ from util import check_gcs_file_ready
 load_dotenv(verbose=True)
 
 app = Flask(__name__)
-
+processed_events = set()
 @app.route("/syncData", methods=["POST"])
 def handle_request():
     try:
-        # 檢查GCS批次檔案是否準備好
         event_data = request.get_json()
+        event_id = event_data.get('id')
+        # 檢查事件是否已處理
+        if event_id in processed_events:
+            logging.info(f"Event {event_id} 已處理過，跳過。")
+            return "Event already processed.", 200
+        # 檢查GCS批次檔案是否準備好
         logging.info("Received event:%s", event_data)
-        logging.info("event id: %s", event_data.get('id'))
+        logging.info("event id: %s", event_id)
         logging.info("object createtime: %s", event_data.get('timeCreated'))
         if not check_gcs_file_ready(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE')):
             return f"GCS 檔案 {os.getenv('DAILY_FILE')} 尚未準備就緒，請稍後再試。", 200
