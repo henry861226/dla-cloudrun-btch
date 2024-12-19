@@ -66,12 +66,22 @@ def check_gcs_file_ready(bucket_name, file_name, max_retries=5, wait_seconds=3):
     return False
 
 def delete_gcs_file(bucket_name, file_name):
-    # 獲取指定的 Bucket
-    bucket = storage_client.bucket(bucket_name)
+    try:
+        # 獲取指定的 Bucket
+        bucket = storage_client.bucket(bucket_name)
 
-    # 獲取要刪除的檔案物件
-    blob = bucket.blob(file_name)
+        # 獲取要刪除的檔案物件
+        blob = bucket.blob(file_name)
+        blob.reload()
+        generation_match_precondition = blob.generation
 
-    # 刪除檔案
-    blob.delete()
-    return logging.info(f"檔案 {file_name} 已從 Bucket {bucket_name} 中刪除。")
+        # 刪除檔案
+        logging.info(f"正在刪除檔案 {file_name}，當前 generation: {generation_match_precondition}")
+        blob.delete(if_generation_match=generation_match_precondition)
+        #blob.delete()
+        
+        return logging.info(f"檔案 {file_name} 已從 Bucket {bucket_name} 中刪除。")
+
+    except Exception as e:
+            logging.error(f"刪除檔案 {file_name} 時發生錯誤: {e}")
+            raise
