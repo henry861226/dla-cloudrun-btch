@@ -57,6 +57,7 @@ def check_gcs_file_ready(bucket_name, file_name, max_retries=5, wait_seconds=3):
     for attempt in range(max_retries):
         if blob.exists():
             logging.info(f"GCS 檔案 {file_name} 已準備就緒（嘗試次數: {attempt + 1}）。")
+            delete_gcs_file(bucket_name, file_name)
             return True
         else:
             logging.info(f"GCS 檔案 {file_name} 尚未準備好，等待 {wait_seconds} 秒後重試...（第 {attempt + 1} 次）")
