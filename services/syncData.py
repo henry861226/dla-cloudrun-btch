@@ -21,16 +21,16 @@ def sync_data_main():
         sync_data_from_gcs()
 
         # 2. 進行標籤比對，比對客戶個人標籤
-        tag_compare()
+        # tag_compare()
 
-        # 3. 比對客戶標籤，取得客戶的標籤群組
-        match_tag_group()
+        # # 3. 比對客戶標籤，取得客戶的標籤群組
+        # match_tag_group()
 
-        # 4. 寫入 Audit log
-        add_audit_log()
+        # # 4. 寫入 Audit log
+        # add_audit_log()
 
-        # 5. 刪除 GCS 檔案
-        delete_gcs_file(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE'))
+        # # 5. 刪除 GCS 檔案
+        # delete_gcs_file(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE'))
 
         return logging.info("Success sync batch data step.")
     except Exception as e:
