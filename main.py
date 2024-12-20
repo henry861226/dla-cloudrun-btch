@@ -20,6 +20,11 @@ def test():
     time.sleep(15)
     return "test sleep.", 200
 
+@app.route("/testMin", methods=["POST"])
+def testMin():
+    time.sleep(8)
+    return "test sleep for 8 sec.", 200
+
 @app.route("/syncData", methods=["POST"])
 def handle_request():
     try:
