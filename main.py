@@ -31,7 +31,7 @@ def handle_request():
         logging.info("gcs status: %s", gcs_status)
         if not gcs_status:
             logging.info("Returning: GCS 檔案尚未準備就緒")
-            return f"GCS 檔案 {os.getenv('DAILY_FILE')} 尚未準備就緒，請稍後再試。", 200
+            return f"GCS 檔案 {os.getenv('DAILY_FILE')} 尚未準備就緒，請稍後再試。", 202
         else:
             #sync_data_main()
             return "Success syncing batch data.", 200
