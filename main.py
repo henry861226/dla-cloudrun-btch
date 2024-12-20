@@ -28,7 +28,7 @@ def handle_request():
         logging.info("event id: %s", event_id)
         logging.info("object createtime: %s", event_data.get('timeCreated'))
         gcs_status = check_gcs_file_ready(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE'))
-        if not gcs_status:
+        if gcs_status != True:
             return f"GCS 檔案 {os.getenv('DAILY_FILE')} 尚未準備就緒，請稍後再試。", 200
         else:
             sync_data_main()
