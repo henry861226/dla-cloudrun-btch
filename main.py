@@ -27,12 +27,12 @@ def handle_request():
         logging.info("Received event:%s", event_data)
         logging.info("event id: %s", event_id)
         logging.info("object createtime: %s", event_data.get('timeCreated'))
-        check_gcs_file_ready(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE'))
-        # if not check_gcs_file_ready(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE')):
-        #     return f"GCS 檔案 {os.getenv('DAILY_FILE')} 尚未準備就緒，請稍後再試。", 200
-        # else:
-        sync_data_main()
-        return "Success syncing batch data.", 200
+        # check_gcs_file_ready(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE'))
+        if not check_gcs_file_ready(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE')):
+            return f"GCS 檔案 {os.getenv('DAILY_FILE')} 尚未準備就緒，請稍後再試。", 200
+        else:
+            sync_data_main()
+            return "Success syncing batch data.", 200
     except Exception as e:
             logging.error(f"syncdata request發生錯誤: {e}")
             raise
