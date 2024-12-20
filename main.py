@@ -19,19 +19,19 @@ def handle_request():
     try:
         event_data = request.get_json()
         event_id = event_data.get('id')
-        # 檢查事件是否已處理
-        if event_id in processed_events:
-            logging.info(f"Event {event_id} 已處理過，跳過。")
-            return "Event already processed.", 200
+        # # 檢查事件是否已處理
+        # if event_id in processed_events:
+        #     logging.info(f"Event {event_id} 已處理過，跳過。")
+        #     return "Event already processed.", 200
         # 檢查GCS批次檔案是否準備好
         logging.info("Received event:%s", event_data)
         logging.info("event id: %s", event_id)
         logging.info("object createtime: %s", event_data.get('timeCreated'))
-        if not check_gcs_file_ready(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE')):
-            return f"GCS 檔案 {os.getenv('DAILY_FILE')} 尚未準備就緒，請稍後再試。", 200
-        else:
-            sync_data_main()
-            return "Success syncing batch data.", 200
+        # if not check_gcs_file_ready(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE')):
+        #     return f"GCS 檔案 {os.getenv('DAILY_FILE')} 尚未準備就緒，請稍後再試。", 200
+        # else:
+        #     sync_data_main()
+        return "Success syncing batch data.", 200
     except Exception as e:
             logging.error(f"syncdata request發生錯誤: {e}")
             raise
