@@ -1,5 +1,6 @@
 import os
 import logging
+import time
 from flask import Flask, request
 from dotenv import load_dotenv
 from services.syncData import sync_data_main
@@ -13,6 +14,11 @@ from util import check_gcs_file_ready
 load_dotenv(verbose=True)
 
 app = Flask(__name__)
+
+@app.route("/test", methods=["POST"])
+def test():
+    time.sleep(15)
+    return "test sleep.", 200
 
 @app.route("/syncData", methods=["POST"])
 def handle_request():
