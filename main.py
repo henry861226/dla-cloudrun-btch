@@ -13,7 +13,7 @@ from util import check_gcs_file_ready
 load_dotenv(verbose=True)
 
 app = Flask(__name__)
-processed_events = set()
+
 @app.route("/syncData", methods=["POST"])
 def handle_request():
     try:
@@ -28,10 +28,12 @@ def handle_request():
         logging.info("event id: %s", event_id)
         logging.info("object createtime: %s", event_data.get('timeCreated'))
         gcs_status = check_gcs_file_ready(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE'))
-        if gcs_status != True:
+        logging.info("gcs status: %s", gcs_status)
+        if not gcs_status:
+            logging.info("Returning: GCS 檔案尚未準備就緒")
             return f"GCS 檔案 {os.getenv('DAILY_FILE')} 尚未準備就緒，請稍後再試。", 200
         else:
-            sync_data_main()
+            #sync_data_main()
             return "Success syncing batch data.", 200
     except Exception as e:
             logging.error(f"syncdata request發生錯誤: {e}")
