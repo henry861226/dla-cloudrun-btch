@@ -60,7 +60,7 @@ def check_gcs_file_ready(bucket_name, file_name, max_retries=5, wait_seconds=3):
             return True
         else:
             logging.info(f"GCS 檔案 {file_name} 尚未準備好，等待 {wait_seconds} 秒後重試...（第 {attempt + 1} 次）")
-            time.sleep(wait_seconds)
+            #time.sleep(wait_seconds)
     
     logging.info(f"GCS 檔案 {file_name} 在嘗試 {max_retries} 次後仍未準備就緒。")
     return False
