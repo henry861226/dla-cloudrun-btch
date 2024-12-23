@@ -16,58 +16,6 @@ load_dotenv(verbose=True)
 
 app = Quart(__name__)
 
-@app.route("/test", methods=["POST"])
-async def test():
-    print("test start")
-    #asyncio.create_task(try_async())
-    
-    # task.add_done_callback(on_task_done)
-    # 在合適的地方呼叫
-    #await cleanup_tasks()
-    await check_all_tasks()
-    print("trying...")
-    
-    logging.info("TEST async")
-    # try_async()
-    return "test sleep.", 200
-def on_task_done(task):
-    """當任務完成時執行的回調函數"""
-    if task.exception():
-        print(f"Task raised an exception: {task.exception()}")
-    else:
-        print(f"Task completed successfully, result: {task.result()}")
-        # 在任務執行過程中，檢查當前的所有任務
-async def try_async():
-    try:
-        print("資料檢查開始")
-        #result = await test_check(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE'))
-        # if result:
-        #     print("資料檢查完成！")
-        # else:
-        #     print("檔案尚未準備就緒。")
-    except Exception as e:
-        logging.error(f"Error in try_async: {e}")
-        raise  # 如果需要重新拋出錯誤
-async def check_all_tasks():
-    all_tasks = asyncio.all_tasks()
-    for task in all_tasks:
-        print(f"Task {task} is {task._state}")
-# 用於清理任務，強制取消所有正在執行的任務
-async def cleanup_tasks():
-    # 獲取當前的所有任務
-    all_tasks = asyncio.all_tasks()
-    
-    # 取消所有未完成的任務
-    for task in all_tasks:
-        if not task.done():
-            print(f"Cancelling task {task}")
-            task.cancel()
-    # 等待所有任務完成或取消
-    await asyncio.gather(*all_tasks, return_exceptions=True)
-def handle_exit_signal(signum, frame):
-    print("Caught exit signal, cleaning up tasks.")
-    asyncio.create_task(cleanup_tasks())
-
 @app.route("/syncData", methods=["POST"])
 async def handle_request():
     try:
@@ -104,6 +52,14 @@ def handle_request_generate():
     vertex_main()
     return "Success Gen Group Marketing Copywriting.", 200
 
-# 開出port號
+
+async def main():
+    # 使用 app.run_task() 啟動 Quart
+    port = int(os.environ.get("PORT", 8080))
+    await app.run_task(host="0.0.0.0", port=port, debug=True)
+
 if __name__ == "__main__":
-    app.run(port=int(os.environ.get("PORT", 8080)),host='0.0.0.0',debug=True)
+    asyncio.run(main())
+# # 開出port號
+# if __name__ == "__main__":
+#     app.run_async(port=int(os.environ.get("PORT", 8080)),host='0.0.0.0',debug=True)
