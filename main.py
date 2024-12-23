@@ -19,6 +19,12 @@ app = Quart(__name__)
 @app.route("/syncData", methods=["POST"])
 async def handle_request():
     try:
+        event_data = request.get_json()
+        event_id = event_data.get('id')
+        # 檢查GCS批次檔案是否準備好
+        logging.info("Received event:%s", event_data)
+        logging.info("event id: %s", event_id)
+        logging.info("object createtime: %s", event_data.get('timeCreated'))
         asyncio.create_task(process_sync_data())
         logging.info("Success start sync data cloudrun service.")
         return "Success start sync data cloudrun service.", 200
@@ -27,12 +33,6 @@ async def handle_request():
         raise
 async def process_sync_data():
     try:
-        event_data = request.get_json()
-        event_id = event_data.get('id')
-        # 檢查GCS批次檔案是否準備好
-        logging.info("Received event:%s", event_data)
-        logging.info("event id: %s", event_id)
-        logging.info("object createtime: %s", event_data.get('timeCreated'))
         gcs_status = await check_gcs_file_ready(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE'))
         if not gcs_status:
             logging.info("Returning: GCS 檔案尚未準備就緒")
