@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+import asyncio
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from jinja2 import Environment, FileSystemLoader
@@ -49,7 +50,7 @@ def check_table_exist(table_id):
         print("Table creation verification failed. Exiting.")
         return
 
-def check_gcs_file_ready(bucket_name, file_name, max_retries=5, wait_seconds=3):
+async def check_gcs_file_ready(bucket_name, file_name, max_retries=5, wait_seconds=3):
     """確認 GCS 檔案是否存在且準備就緒（最多嘗試 max_retries 次）"""
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(file_name)
@@ -60,7 +61,8 @@ def check_gcs_file_ready(bucket_name, file_name, max_retries=5, wait_seconds=3):
             return True
         else:
             logging.info(f"GCS 檔案 {file_name} 尚未準備好，等待 {wait_seconds} 秒後重試...（第 {attempt + 1} 次）")
-            #time.sleep(wait_seconds)
+            # time.sleep(wait_seconds)
+            await asyncio.sleep(wait_seconds)
     
     logging.info(f"GCS 檔案 {file_name} 在嘗試 {max_retries} 次後仍未準備就緒。")
     return False
