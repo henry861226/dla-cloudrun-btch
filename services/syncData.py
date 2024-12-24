@@ -17,19 +17,27 @@ def sync_data_main():
     try:
         """處理 HTTP 請求，觸發工作流"""
 
-        # 1. 從 GCS 同步CSV檔案
+        # 1. 確認狀態表當日狀態，並新增/更新狀態
+        job_sts = merge_job_sts()
+        if job_sts is False:
+            return logging.info("Previous Batch still running. Please wait!")
+        
+        # 2. 從 GCS 同步CSV檔案
         sync_data_from_gcs()
 
-        # 2. 進行標籤比對，比對客戶個人標籤
+        # 3. 進行標籤比對，比對客戶個人標籤
         tag_compare()
 
-        # 3. 比對客戶標籤，取得客戶的標籤群組
+        # 4. 比對客戶標籤，取得客戶的標籤群組
         match_tag_group()
 
-        # 4. 寫入 Audit log
+        # 5. 寫入 Audit log
         add_audit_log()
 
-        # 5. 刪除 GCS 檔案
+        # 6. 執行完成，更新狀態表當日狀態
+        complete_job_sts()
+
+        # 7. 刪除 GCS 檔案
         delete_gcs_file(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE'))
 
         return logging.info("Success sync batch data step.")
@@ -48,6 +56,43 @@ def sync_data_from_gcs():
         }
     )
     return logging.info("syncing gcs daily csv data.")
+
+def merge_job_sts():
+    job_sts = execute_bq_query(
+        template_name='CHECK_STS.sql',
+        render_params={
+            'projectId': os.getenv('PROJECT_ID'),
+            'dataset': os.getenv('DATASET'),
+            'current_date': current_date
+         }
+    )
+    rows = list(job_sts)
+    if rows:
+        if rows[0]["status"]:
+            logging.info(f"Status {rows[0]['status']}, rerun batch can run.")
+            execute_bq_query(
+                template_name='MERGE_STS.sql',
+                render_params={
+                'projectId': os.getenv('PROJECT_ID'),
+                'dataset': os.getenv('DATASET'),
+                'current_date': current_date,
+                'status': False
+                }
+            )
+        else:
+            return False
+    else:
+        logging.info(f"Today first batch run. ")
+        execute_bq_query(
+            template_name='MERGE_STS.sql',
+            render_params={
+            'projectId': os.getenv('PROJECT_ID'),
+            'dataset': os.getenv('DATASET'),
+            'current_date': current_date,
+            'status': False
+            }
+        )
+    return logging.info("update/insert job daily sts.")
 
 def tag_compare():
     execute_bq_query(
@@ -71,6 +116,18 @@ def match_tag_group():
         }
     )
     return logging.info("Matching cust tags and tag groups.")
+
+def complete_job_sts():
+    execute_bq_query(
+        template_name='MERGE_STS.sql',
+        render_params={
+        'projectId': os.getenv('PROJECT_ID'),
+        'dataset': os.getenv('DATASET'),
+        'current_date': current_date,
+        'status': True
+        }
+    )
+    return logging.info("Update today job status.")
 
 def add_audit_log():
     execute_bq_query(

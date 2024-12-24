@@ -31,8 +31,9 @@ def execute_bq_query(template_name, render_params):
         # 渲染模板
         query = template.render(render_params)
         # 執行 BigQuery 查詢
-        bigquery_client.query(query).result()
+        result = bigquery_client.query(query).result()
         logging.info(f"Query executed successfully for template: {template_name}")
+        return result
     except Exception as e:
         logging.error(f"Error executing query for template {template_name}: {e}")
         raise
