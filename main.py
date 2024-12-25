@@ -39,11 +39,14 @@ async def process_sync_data():
 @app.route("/updateGrp", methods=["POST"])
 async def handle_request_update_grp_meta():
     try:
-        asyncio.create_task(update_grp_main())
+        asyncio.create_task(process_update_grp())
         return "Update Group Meta successfully", 200
     except Exception as e:
-        logging.error(f"syncdata request發生錯誤: {e}")
+        logging.error(f"updateData request發生錯誤: {e}")
         raise
+async def process_update_grp():
+    await update_grp_main()
+    return logging.info("test async update grp process. ")
 
 @app.route("/generate", methods=["POST"])
 def handle_request_generate():
