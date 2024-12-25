@@ -23,11 +23,11 @@ async def update_grp_main():
     # 同步新的GROUP_META
     await sync_grp_meta_from_gcs()
     
-    # 取得上傳人員資訊
-    executor= await get_upload_user(os.getenv('GCS_GRP_BUCKET'), os.getenv('GROUP_FILE'))
+    # # 取得上傳人員資訊
+    # executor= await get_upload_user(os.getenv('GCS_GRP_BUCKET'), os.getenv('GROUP_FILE'))
 
-    # 更新GROUP META，並新增此次異動紀錄至GRP_AUDIT_LOG
-    await add_grp_meta_audit(executor)
+    # # 更新GROUP META，並新增此次異動紀錄至GRP_AUDIT_LOG
+    # await add_grp_meta_audit(executor)
 
     return logging.info("Update Group Meta successfully.")
 

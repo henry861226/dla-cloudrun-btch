@@ -45,7 +45,7 @@ async def handle_request_update_grp_meta():
         logging.error(f"updateData request發生錯誤: {e}")
         raise
 async def process_update_grp():
-    await update_grp_main()
+    result = await update_grp_main()
     return logging.info("test async update grp process. ")
 
 @app.route("/generate", methods=["POST"])
