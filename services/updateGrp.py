@@ -21,13 +21,15 @@ current_datetime = get_current_time("%Y%m%d%H%M")
 
 async def update_grp_main():
     # 同步新的GROUP_META
+
+    await asyncio.sleep(1)
     await sync_grp_meta_from_gcs()
     
-    # # 取得上傳人員資訊
-    # executor= await get_upload_user(os.getenv('GCS_GRP_BUCKET'), os.getenv('GROUP_FILE'))
+    # 取得上傳人員資訊
+    executor= await get_upload_user(os.getenv('GCS_GRP_BUCKET'), os.getenv('GROUP_FILE'))
 
-    # # 更新GROUP META，並新增此次異動紀錄至GRP_AUDIT_LOG
-    # await add_grp_meta_audit(executor)
+    # 更新GROUP META，並新增此次異動紀錄至GRP_AUDIT_LOG
+    await add_grp_meta_audit(executor)
 
     return logging.info("Update Group Meta successfully.")
 
@@ -41,7 +43,6 @@ async def sync_grp_meta_from_gcs():
             'group_file': os.getenv('GROUP_FILE')
         }
     )
-    await asyncio.sleep(1)
     return logging.info("syncing gcs group meta csv data.")
 
 async def get_upload_user(bucket_name, object_name):
