@@ -32,15 +32,16 @@ async def update_grp_main():
     return logging.info("Update Group Meta successfully.")
 
 async def sync_grp_meta_from_gcs():
-    # execute_bq_query(
-    #     template_name='UPDATE_GRP_META.sql',
-    #     render_params={
-    #         'projectId': os.getenv('PROJECT_ID'),
-    #         'dataset': os.getenv('DATASET'),
-    #         'gcs_bucket': os.getenv('GCS_GRP_BUCKET'), 
-    #         'group_file': os.getenv('GROUP_FILE')
-    #     }
-    # )
+    execute_bq_query(
+        template_name='UPDATE_GRP_META.sql',
+        render_params={
+            'projectId': os.getenv('PROJECT_ID'),
+            'dataset': os.getenv('DATASET'),
+            'gcs_bucket': os.getenv('GCS_GRP_BUCKET'), 
+            'group_file': os.getenv('GROUP_FILE')
+        }
+    )
+    await asyncio.sleep(1)
     return logging.info("syncing gcs group meta csv data.")
 
 async def get_upload_user(bucket_name, object_name):
