@@ -1,11 +1,11 @@
 import logging
 import os
-import time
+import asyncio
 from google.cloud import bigquery
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
 from google.cloud import logging_v2
-from util import get_current_time, check_table_exist
+from util import get_current_time, check_table_exist, execute_bq_query
 
 # 自動引用環境變數檔案
 load_dotenv(verbose=True)
@@ -19,12 +19,12 @@ env = Environment(loader=FileSystemLoader('query'))
 current_date = get_current_time("%Y%m%d")
 current_datetime = get_current_time("%Y%m%d%H%M")
 
-def update_grp_main():
+async def update_grp_main():
     # 同步新的GROUP_META
     sync_grp_meta_from_gcs()
     
     # 取得上傳人員資訊
-    executor=get_upload_user(os.getenv('GCS_BUCKET'), os.getenv('GROUP_FILE'))
+    executor=get_upload_user(os.getenv('GCS_GRP_BUCKET'), os.getenv('GROUP_FILE'))
 
     # 更新GROUP META，並新增此次異動紀錄至GRP_AUDIT_LOG
     add_grp_meta_audit(executor)
@@ -32,10 +32,15 @@ def update_grp_main():
     return logging.info("Update Group Meta successfully.")
 
 def sync_grp_meta_from_gcs():
-    template = env.get_template('UPDATE_GRP_META.sql')
-    # 渲染模板，并动态替换参数
-    query = template.render(projectId=os.getenv('PROJECT_ID'), dataset=os.getenv('DATASET'), gcs_bucket=os.getenv('GCS_BUCKET'), group_file=os.getenv('GROUP_FILE'))
-    bq_client.query(query).result()
+    execute_bq_query(
+        template_name='UPDATE_GRP_META.sql',
+        render_params={
+            'projectId': os.getenv('PROJECT_ID'),
+            'dataset': os.getenv('DATASET'),
+            'gcs_bucket': os.getenv('GCS_GRP_BUCKET'), 
+            'group_file': os.getenv('GROUP_FILE')
+        }
+    )
     return logging.info("syncing gcs group meta csv data.")
 
 def get_upload_user(bucket_name, object_name):
@@ -64,9 +69,7 @@ def add_grp_meta_audit(executor):
 
     table_ref = bq_client.dataset(os.getenv('DATASET')).table('GROUP_META')
     table = bq_client.get_table(table_ref)
-
     columns = [schema_field.name for schema_field in table.schema]
-    print("test table schema: ", columns)
     
     # 構建動態的 MERGE 插入語句
     merge_query = f"MERGE `{os.getenv('DATASET')}.GROUP_META` T USING `{os.getenv('PROJECT_ID')}.{os.getenv('DATASET')}.GROUP_NEW` S ON T.group_uuid = S.group_uuid\n"
@@ -87,7 +90,7 @@ def add_grp_meta_audit(executor):
             # 插入 GRP_AUDIT_LOG 的獨立查詢
             audit_log_inserts.append(f"""
             SELECT
-                '{current_date}' AS create_datetime,
+                '{current_datetime}' AS create_datetime,
                 '{executor}' AS executor,
                 T.group_uuid AS group_uuid,
                 "{column}" AS column_name,
@@ -107,7 +110,7 @@ def add_grp_meta_audit(executor):
             # 插入 GRP_AUDIT_LOG 的獨立查詢
             audit_log_inserts.append(f"""
             SELECT
-                '{current_date}' AS create_datetime,
+                '{current_datetime}' AS create_datetime,
                 '{executor}' AS executor,
                 T.group_uuid AS group_uuid,
                 "{column}" AS column_name,
@@ -131,7 +134,14 @@ def add_grp_meta_audit(executor):
     drop_source_table_query = f"DROP TABLE `{os.getenv('PROJECT_ID')}.{os.getenv('DATASET')}.GROUP_NEW`"
 
     check_table_exist('GROUP_NEW')
-    bq_client.query(audit_log_query).result()
-    bq_client.query(merge_query).result()
+    # Grp auditlog
+    result = bq_client.query(audit_log_query).result()
+    affected_rows = result.num_dml_affected_rows
+    logging.info(f"欄位更新總數: {affected_rows}")
+    # Merging grp meta
+    merge_result = bq_client.query(merge_query).result()
+    merge_affected_rows = merge_result.num_dml_affected_rows
+    logging.info(f"標籤群組更新總數: {merge_affected_rows}")
+    # Drop temp table
     bq_client.query(drop_source_table_query).result()
     return logging.info("Adding grp meta audit log.")
