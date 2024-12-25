@@ -23,17 +23,17 @@ async def update_grp_main():
     # 同步新的GROUP_META
 
     await asyncio.sleep(1)
-    await sync_grp_meta_from_gcs()
+    sync_grp_meta_from_gcs()
     
     # 取得上傳人員資訊
-    executor= await get_upload_user(os.getenv('GCS_GRP_BUCKET'), os.getenv('GROUP_FILE'))
+    executor= get_upload_user(os.getenv('GCS_GRP_BUCKET'), os.getenv('GROUP_FILE'))
 
     # 更新GROUP META，並新增此次異動紀錄至GRP_AUDIT_LOG
-    await add_grp_meta_audit(executor)
+    add_grp_meta_audit(executor)
 
     return logging.info("Update Group Meta successfully.")
 
-async def sync_grp_meta_from_gcs():
+def sync_grp_meta_from_gcs():
     execute_bq_query(
         template_name='UPDATE_GRP_META.sql',
         render_params={
@@ -45,7 +45,7 @@ async def sync_grp_meta_from_gcs():
     )
     return logging.info("syncing gcs group meta csv data.")
 
-async def get_upload_user(bucket_name, object_name):
+def get_upload_user(bucket_name, object_name):
     client = logging_v2.Client()
 
     # 定義日誌查詢
@@ -67,7 +67,7 @@ async def get_upload_user(bucket_name, object_name):
 
     return "Unknown user"
 
-async def add_grp_meta_audit(executor):
+def add_grp_meta_audit(executor):
 
     table_ref = bq_client.dataset(os.getenv('DATASET')).table('GROUP_META')
     table = bq_client.get_table(table_ref)
