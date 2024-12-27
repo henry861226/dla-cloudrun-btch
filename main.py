@@ -31,7 +31,7 @@ async def process_sync_data():
         if not gcs_status:
             logging.info("Returning: GCS 檔案尚未準備就緒")
             return logging.info(f"GCS 檔案 {os.getenv('DAILY_FILE')} 尚未準備就緒，請稍後再試。")
-        sync_data_main()
+        await sync_data_main()
         return logging.info("Success syncing batch data.")
     except Exception as e:
             logging.error(f"syncdata request發生錯誤: {e}")

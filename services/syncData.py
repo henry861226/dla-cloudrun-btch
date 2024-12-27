@@ -1,5 +1,6 @@
 import logging
 import os
+import asyncio
 from dotenv import load_dotenv
 from util import get_current_time, check_table_exist, check_gcs_file_ready, delete_gcs_file, execute_bq_query
 
@@ -13,8 +14,9 @@ current_datetime = get_current_time("%Y%m%d%H%M")
 # 設置日誌格式
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-def sync_data_main():
+async def sync_data_main():
     try:
+        asyncio.sleep(1)
         """處理 HTTP 請求，觸發工作流"""
 
         # 1. 確認狀態表當日狀態，並新增/更新狀態
