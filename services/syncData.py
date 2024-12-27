@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 async def sync_data_main():
     try:
-        asyncio.sleep(1)
+        await asyncio.sleep(1)
         """處理 HTTP 請求，觸發工作流"""
 
         # 1. 確認狀態表當日狀態，並新增/更新狀態
