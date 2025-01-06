@@ -1,6 +1,5 @@
 import os
 import logging
-import time
 import asyncio
 from quart import Quart, request
 from dotenv import load_dotenv
@@ -12,7 +11,7 @@ from util import check_gcs_file_ready
 # export GOOGLE_APPLICATION_CREDENTIALS="dla-dataform.json"
 #storage_client = storage.Client.from_service_account_json("dla-dataform.json")
 # 自動引用環境變數檔案
-load_dotenv(verbose=True)
+load_dotenv(verbose=True, override=True)
 
 app = Quart(__name__)
 

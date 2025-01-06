@@ -11,14 +11,76 @@ SELECT
     tag_name,
     value
 FROM
-    `{{ dataset }}.EXTERNAL_CSV`
+    `{{ dataset }}.TRANS`
 UNPIVOT (
     value FOR tag_name IN (
-    tag_name1, tag_name2, tag_name3, tag_name4, tag_name5,tag_name6, tag_name7, tag_name8, tag_name9, tag_name10,
-    tag_name11, tag_name12, tag_name13, tag_name14, tag_name15,tag_name16, tag_name17, tag_name18, tag_name19, tag_name20,
-    tag_name21, tag_name22, tag_name23, tag_name24, tag_name25,tag_name26, tag_name27, tag_name28, tag_name29, tag_name30,
-    tag_name31, tag_name32, tag_name33, tag_name34, tag_name35,tag_name36, tag_name37, tag_name38, tag_name39, tag_name40,
-    tag_name41, tag_name42, tag_name43, tag_name44, tag_name45,tag_name46, tag_name47, tag_name48, tag_name49, tag_name50
+        MY_NEWPARENT,
+        MY_ELDERLY,
+        MY_LANDLORD,
+        MY_SOCIALITE,
+        MY_ENTREPRENEUR,
+        MY_HWHITECOLLAR,
+        MY_WUSHIH,
+        MY_PUBLICSERVANT,
+        MY_FINANCEELITE, 
+        MY_TECHELITE,
+        MY_VIPHEIR,
+        MY_VIPRELATIVE,
+        MY_LOWSPENDING,
+        I_DONTMKT,
+        I_MKTBLACKLIST,
+        I_NOINSTALLMENT,
+        I_SALARYACCT,
+        I_CCPREAPPROVE,
+        I_FA,
+        P_CASHADVANCE,
+        P_INSTALLMENT,
+        P_REVOLVINGCREDIT,
+        P_CUBECARD,
+        P_CUBECARD_NA,
+        P_WORLDCARD,
+        P_WORLDCARD_NA,
+        P_STOCKTRX,
+        P_POTENTIALBORROWER,
+        P_LINELINKED,
+        CALL_CCTRXLIST,
+        CALL_CCLOST,
+        CALL_CCTRXDISPUTE,
+        CALL_CCBILL,
+        CALL_CCLIMIT,
+        CALL_CCLIMITRAISE,
+        CALL_NOLEVEL4RECORD,
+        I_YOUTH,
+        I_VIP,
+        P_XYZCouponLTD,
+        MY_ECSHOPPER,
+        MY_GAMING,
+        MY_3C,
+        MY_FOODIE,
+        MY_CVS,
+        MY_HYPERMARKET,
+        MY_SHOPPINGMALL,
+        MY_BUDGETITEM,
+        MY_TRAVELER,
+        MY_PRICESENSITIVE,
+        MY_MILEAGE,
+        MY_HIGHSPENDING,
+        MY_POTENTIAL_FUND,
+        MY_POTENTIAL_WHOLELIFEINSURANCE,
+        MY_POTENTIAL_INVESTINSURANCE,
+        MY_POTENTIAL_GENERALINSURANCE,
+        MY_POTENTIAL_IFX,
+        MY_POTENTIAL_IFXFD,
+        MY_POTENTIAL_INSTALLMENT,
+        MY_POTENTIAL_MOBILEPAYMENT,
+        MY_TWDSTEADYINCOME,
+        MY_LARGEINCOMECURRENTMONTH,
+        MY_TWDINCOMEINCREASE,
+        MY_TWDINCOMEDECREASE,
+        MY_FUNDINVESTINCREASE,
+        MY_FUNDINVESTDECREASE,
+        MY_HIGHDIVIDEND,
+        MY_HIGHFREQTRADING
     )
 )
 ),
@@ -35,7 +97,7 @@ JOIN
     `{{ dataset }}.TAG_META` AS t2
 ON
     t1.tag_name = t2.tag_name
-WHERE t2.enabled=true AND t1.value > t2.threshold
+WHERE t2.enabled=true AND t1.value >= t2.threshold
 )
 -- [ADD TAG_NAME TO CUS_TAG TB]
 SELECT

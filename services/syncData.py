@@ -2,7 +2,7 @@ import logging
 import os
 import asyncio
 from dotenv import load_dotenv
-from util import get_current_time, check_table_exist, check_gcs_file_ready, delete_gcs_file, execute_bq_query
+from util import get_current_time, check_table_exist, delete_gcs_file, execute_bq_query
 
 # 自動引用環境變數檔案
 load_dotenv(verbose=True)
@@ -27,19 +27,22 @@ async def sync_data_main():
         # 2. 從 GCS 同步CSV檔案
         sync_data_from_gcs()
 
-        # 3. 進行標籤比對，比對客戶個人標籤
+        # 3. 轉換資料格式
+        trans_external_data()
+
+        # 4. 進行標籤比對，比對客戶個人標籤
         tag_compare()
 
-        # 4. 比對客戶標籤，取得客戶的標籤群組
+        # 5. 比對客戶標籤，取得客戶的標籤群組
         match_tag_group()
 
-        # 5. 寫入 Audit log
+        # 6. 寫入 Audit log
         add_audit_log()
 
-        # 6. 執行完成，更新狀態表當日狀態
+        # 7. 執行完成，更新狀態表當日狀態
         complete_job_sts()
 
-        # 7. 刪除 GCS 檔案
+        # 8. 刪除 GCS 檔案
         delete_gcs_file(os.getenv('GCS_BUCKET'), os.getenv('DAILY_FILE'))
 
         return logging.info("Success sync batch data step.")
@@ -58,6 +61,16 @@ def sync_data_from_gcs():
         }
     )
     return logging.info("syncing gcs daily csv data.")
+
+def trans_external_data():
+    execute_bq_query(
+        template_name='TRANS_CSV.sql',
+        render_params={
+            'projectId': os.getenv('PROJECT_ID'),
+            'dataset': os.getenv('DATASET')
+        }
+    )
+    return logging.info("transform original csv data.")
 
 def merge_job_sts():
     job_sts = execute_bq_query(
