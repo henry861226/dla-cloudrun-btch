@@ -7,10 +7,6 @@ from util import get_current_time, check_table_exist, delete_gcs_file, execute_b
 # 自動引用環境變數檔案
 load_dotenv(verbose=True)
 
-# 執行當天日期 / 時間
-current_date = get_current_time("%Y%m%d")
-current_datetime = get_current_time("%Y%m%d%H%M")
-
 # 設置日誌格式
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
@@ -78,7 +74,7 @@ def merge_job_sts():
         render_params={
             'projectId': os.getenv('PROJECT_ID'),
             'dataset': os.getenv('DATASET'),
-            'current_date': current_date
+            'current_date': get_current_time("%Y%m%d")
          }
     )
     rows = list(job_sts)
@@ -90,7 +86,7 @@ def merge_job_sts():
                 render_params={
                 'projectId': os.getenv('PROJECT_ID'),
                 'dataset': os.getenv('DATASET'),
-                'current_date': current_date,
+                'current_date': get_current_time("%Y%m%d"),
                 'status': False
                 }
             )
@@ -103,7 +99,7 @@ def merge_job_sts():
             render_params={
             'projectId': os.getenv('PROJECT_ID'),
             'dataset': os.getenv('DATASET'),
-            'current_date': current_date,
+            'current_date': get_current_time("%Y%m%d"),
             'status': False
             }
         )
@@ -115,19 +111,19 @@ def tag_compare():
         render_params={
             'projectId': os.getenv('PROJECT_ID'),
             'dataset': os.getenv('DATASET'),
-            'date': current_date
+            'date': get_current_time("%Y%m%d")
         }
     )
     return logging.info("Comparing cust tags threadholds.")
 
 def match_tag_group():
-    check_table_exist(f"CUST_TAGS_{current_date}")
+    check_table_exist(f"CUST_TAGS_{get_current_time("%Y%m%d")}")
     execute_bq_query(
         template_name='MATCH_TAG_GRP.sql',
         render_params={
             'projectId': os.getenv('PROJECT_ID'),
             'dataset': os.getenv('DATASET'),
-            'date': current_date
+            'date': get_current_time("%Y%m%d")
         }
     )
     return logging.info("Matching cust tags and tag groups.")
@@ -138,7 +134,7 @@ def complete_job_sts():
         render_params={
         'projectId': os.getenv('PROJECT_ID'),
         'dataset': os.getenv('DATASET'),
-        'current_date': current_date,
+        'current_date': get_current_time("%Y%m%d"),
         'status': True
         }
     )
@@ -150,8 +146,8 @@ def add_audit_log():
         render_params={
             'projectId': os.getenv('PROJECT_ID'),
             'dataset': os.getenv('DATASET'),
-            'datetime': current_datetime,
-            'date': current_date
+            'datetime': get_current_time("%Y%m%d%H%M"),
+            'date': get_current_time("%Y%m%d")
         }
     )
     return logging.info("Add audit log.")

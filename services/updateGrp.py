@@ -15,9 +15,6 @@ bq_client = bigquery.Client()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 # 設置query模板文件目錄
 env = Environment(loader=FileSystemLoader('query'))
-# 執行當天日期 / 時間
-current_date = get_current_time("%Y%m%d")
-current_datetime = get_current_time("%Y%m%d%H%M")
 
 async def update_grp_main():
     # 同步新的GROUP_META
@@ -92,7 +89,7 @@ def add_grp_meta_audit(executor):
             # 插入 GRP_AUDIT_LOG 的獨立查詢
             audit_log_inserts.append(f"""
             SELECT
-                '{current_datetime}' AS create_datetime,
+                '{get_current_time("%Y%m%d%H%M")}' AS create_datetime,
                 '{executor}' AS executor,
                 T.group_uuid AS group_uuid,
                 "{column}" AS column_name,
@@ -112,7 +109,7 @@ def add_grp_meta_audit(executor):
             # 插入 GRP_AUDIT_LOG 的獨立查詢
             audit_log_inserts.append(f"""
             SELECT
-                '{current_datetime}' AS create_datetime,
+                '{get_current_time("%Y%m%d%H%M")}' AS create_datetime,
                 '{executor}' AS executor,
                 T.group_uuid AS group_uuid,
                 "{column}" AS column_name,
