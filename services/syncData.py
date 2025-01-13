@@ -117,7 +117,7 @@ def tag_compare():
     return logging.info("Comparing cust tags threadholds.")
 
 def match_tag_group():
-    check_table_exist(f"CUST_TAGS_{get_current_time("%Y%m%d")}")
+    check_table_exist(f"CUST_TAGS_{get_current_time('%Y%m%d')}")
     execute_bq_query(
         template_name='MATCH_TAG_GRP.sql',
         render_params={

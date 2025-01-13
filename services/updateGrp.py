@@ -89,7 +89,7 @@ def add_grp_meta_audit(executor):
             # 插入 GRP_AUDIT_LOG 的獨立查詢
             audit_log_inserts.append(f"""
             SELECT
-                '{get_current_time("%Y%m%d%H%M")}' AS create_datetime,
+                '{get_current_time('%Y%m%d%H%M')}' AS create_datetime,
                 '{executor}' AS executor,
                 T.group_uuid AS group_uuid,
                 "{column}" AS column_name,
@@ -109,7 +109,7 @@ def add_grp_meta_audit(executor):
             # 插入 GRP_AUDIT_LOG 的獨立查詢
             audit_log_inserts.append(f"""
             SELECT
-                '{get_current_time("%Y%m%d%H%M")}' AS create_datetime,
+                '{get_current_time('%Y%m%d%H%M')}' AS create_datetime,
                 '{executor}' AS executor,
                 T.group_uuid AS group_uuid,
                 "{column}" AS column_name,
