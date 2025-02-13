@@ -60,3 +60,4 @@ wrapt==1.17.0
 wsproto==1.2.0
 zipp==3.21.0
 uvicorn==0.34.0
+fastapi==0.115.8
