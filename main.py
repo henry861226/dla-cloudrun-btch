@@ -15,6 +15,14 @@ from util import check_gcs_file_ready
 load_dotenv(verbose=True, override=True)
 
 app = FastAPI()
+@app.post('/test-check')
+async def check_test():
+    try:
+        await check_gcs_file_ready('testing_pcg_bucket', 'upload/input_data.csv')
+        return "Success checking.", 200
+    except Exception as e:
+        logging.error(f"checking request發生錯誤: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post('/sync-data')
 async def handle_request():
