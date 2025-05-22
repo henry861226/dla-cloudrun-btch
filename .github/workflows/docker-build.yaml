@@ -1,0 +1,27 @@
+name: Build and Push Docker Image to Artifact Registry
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Authenticate to GCP
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: '${{ secrets.DLA_GCP_POC_SA }}'
+
+    - name: Configure Docker for Artifact Registry
+      run: |
+        gcloud auth configure-docker asia-east1-docker.pkg.dev
+
+    - name: Build and Push Docker image
+      run: |
+        docker build -t asia-east1-docker.pkg.dev/dla-poc-447003/dla-poc-repo/dla-batch:$GITHUB_SHA .
+        docker push asia-east1-docker.pkg.dev/dla-poc-447003/dla-poc-repo/dla-batch:$GITHUB_SHA

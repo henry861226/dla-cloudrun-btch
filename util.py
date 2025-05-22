@@ -51,7 +51,7 @@ def check_table_exist(table_id):
         print("Table creation verification failed. Exiting.")
         return
 
-async def check_gcs_file_ready(bucket_name, file_name, max_retries=5, wait_seconds=3):
+def check_gcs_file_ready(bucket_name, file_name, max_retries=5, wait_seconds=3):
     """確認 GCS 檔案是否存在且準備就緒（最多嘗試 max_retries 次）"""
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(file_name)
@@ -61,9 +61,7 @@ async def check_gcs_file_ready(bucket_name, file_name, max_retries=5, wait_secon
             logging.info(f"GCS 檔案 {file_name} 已準備就緒（嘗試次數: {attempt + 1}）。")
             return True
         else:
-            logging.info(f"GCS 檔案 {file_name} 尚未準備好，等待 {wait_seconds} 秒後重試...（第 {attempt + 1} 次）")
-            # time.sleep(wait_seconds)
-            await asyncio.sleep(wait_seconds)
+            logging.info(f"GCS 檔案 {bucket_name}/{file_name} 尚未準備好，等待 {wait_seconds} 秒後重試...（第 {attempt + 1} 次）")
     
     logging.info(f"GCS 檔案 {file_name} 在嘗試 {max_retries} 次後仍未準備就緒。")
     return False
@@ -88,3 +86,36 @@ def delete_gcs_file(bucket_name, file_name):
     except Exception as e:
             logging.error(f"刪除檔案 {file_name} 時發生錯誤: {e}")
             raise
+
+def clean_gcs_file(bucket_name, folder_name):
+    try:
+        # 獲取指定的 Bucket
+        bucket = storage_client.bucket(bucket_name)
+
+        # 獲取所有該資料夾下的檔案
+        blobs = bucket.list_blobs(prefix=f"{folder_name}/")  # 確保有 `/` 以限制範圍
+
+        # 逐一刪除檔案
+        for blob in blobs:
+            blob.reload()
+            generation_match_precondition = blob.generation
+            logging.info(f"正在刪除檔案 {blob.name}，當前 generation: {generation_match_precondition}")
+            blob.delete(if_generation_match=generation_match_precondition)
+            # blob.delete()  # 如果不需要 generation 檢查，則直接刪除
+
+        return logging.info(f"資料夾 {folder_name} 內的所有檔案已從 Bucket {bucket_name} 中刪除。")
+
+    except Exception as e:
+        logging.error(f"刪除資料夾 {folder_name} 內檔案時發生錯誤: {e}")
+        raise
+
+def call_llm_sp(group_list):
+    try: 
+        logging.info(f"GROUP LIST: {group_list}")
+        query = f"CALL `{os.getenv('PROJECT_ID')}.{os.getenv('DATASET')}.gen_llm`({group_list})"
+        query_job = bigquery_client.query(query)
+        query_job.result()
+        return logging.info("完成文案生成！")
+    except Exception as e:
+        logging.error(f"執行文案生成發生錯誤: {e}")
+        raise   
