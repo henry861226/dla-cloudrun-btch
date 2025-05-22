@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dla-batch
+  labels:
+    app: dla-batch
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dla-batch
+  template:
+    metadata:
+      labels:
+        app: dla-batch
+    spec:
+      containers:
+      - name: dla-batch
+        image: asia-east1-docker.pkg.dev/dla-poc-447003/dla-poc-repo/dla-batch:latest
+        ports:
+        - containerPort: 8080

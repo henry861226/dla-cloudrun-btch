@@ -23,5 +23,5 @@ jobs:
 
     - name: Build and Push Docker image
       run: |
-        docker build -t asia-east1-docker.pkg.dev/dla-poc-447003/dla-poc-repo/dla-batch:$GITHUB_SHA .
-        docker push asia-east1-docker.pkg.dev/dla-poc-447003/dla-poc-repo/dla-batch:$GITHUB_SHA
+        docker build -t asia-east1-docker.pkg.dev/dla-poc-447003/dla-poc-repo/dla-batch:latest .
+        docker push asia-east1-docker.pkg.dev/dla-poc-447003/dla-poc-repo/dla-batch:latest
